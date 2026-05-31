@@ -2,7 +2,7 @@
     "app": {
         "delisting_poll_interval_sec": 5.0,
         "game_loop_interval_sec": 1.0,
-        "test_mode": true
+        "test_mode": false
     },
     "logger": {
         "log_debug": true,

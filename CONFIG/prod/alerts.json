@@ -3,10 +3,10 @@
         "enabled": false
     },
     "alertzy_ios": {
-        "enabled": true
+        "enabled": false
     },
     "pushover_android": {
-        "enabled": true
+        "enabled": false
     },
     "telegram_alerts": {
         "enabled": true
