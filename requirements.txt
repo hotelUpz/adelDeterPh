@@ -1,0 +1,7 @@
+# File: requirements.txt
+# Role: Python dependencies for the project.
+aiohttp
+aiogram
+python-dotenv
+pytz
+web3

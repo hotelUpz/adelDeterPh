@@ -1,0 +1,2 @@
+2026-05-30 23:39:47 | ERROR | tg_bot | [SANDBOX_TEST] Error fetching active positions: Private API request failed: HTTP 401: {"code": "401","msg": "401 Failed to load API KEY."}
+2026-05-31 00:00:02 | ERROR | tg_bot | [SANDBOX_TEST] Error fetching active positions: Private API request failed: HTTP 401: {"code": "401","msg": "401 Failed to load API KEY."}

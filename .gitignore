@@ -1,0 +1,15 @@
+__pycache__/
+.env
+.env.test
+.vscode/
+.ssh-autostart.sh
+ssh_key.txt
+ssh_key.pub
+DEPLOY.md
+zdraft.py
+# zdiag_binance.py
+# zdiag_kucoin.py
+# zdiag_bitget.py
+# TZ.md
+DOCS/
+scratch/

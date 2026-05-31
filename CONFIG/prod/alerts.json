@@ -1,0 +1,18 @@
+{
+    "techulus_ios": {
+        "enabled": false
+    },
+    "alertzy_ios": {
+        "enabled": true
+    },
+    "pushover_android": {
+        "enabled": true
+    },
+    "telegram_alerts": {
+        "enabled": true
+    },
+    "delisting_repeats": 3,
+    "delisting_interval_sec": 60.0,
+    "alert_title_template": "⚠️ ОБНАРУЖЕН ДЕЛИСТИНГ: {symbols}",
+    "alert_body_template": "Внимание! Актив <b>{symbols}</b> находится в процессе делистинга на Phemex, но по нему обнаружена открытая позиция или активный ордер!\n\nПовтор {repeat_num} из {total_repeats}."
+}

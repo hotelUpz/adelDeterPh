@@ -1,0 +1,9 @@
+{
+    "telegram": {
+        "enabled": true,
+        "allowed_user_ids": [
+            1059524161,
+            610822492
+        ]
+    }
+}

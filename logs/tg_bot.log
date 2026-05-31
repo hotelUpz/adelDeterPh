@@ -1,0 +1,6 @@
+2026-05-31 00:15:16 | WARNING | tg_bot | Failed to fetch active orders for IRYSUSDT: 'str' object has no attribute 'get'
+2026-05-31 00:15:17 | WARNING | tg_bot | Failed to fetch active orders for PRLUSDT: Private API request failed: Phemex Error [10002]: OM_ORDER_NOT_FOUND
+2026-05-31 00:15:17 | WARNING | tg_bot | Failed to fetch active orders for LYNUSDT: Private API request failed: Phemex Error [10002]: OM_ORDER_NOT_FOUND
+2026-05-31 00:15:17 | WARNING | tg_bot | Failed to fetch conditional orders for IRYSUSDT: Private API request failed: HTTP 401: {"code": "401","msg": "401 Miss Signature."}
+2026-05-31 00:15:18 | WARNING | tg_bot | Failed to fetch conditional orders for LYNUSDT: Private API request failed: HTTP 401: {"code": "401","msg": "401 Miss Signature."}
+2026-05-31 00:15:18 | WARNING | tg_bot | Failed to fetch conditional orders for PRLUSDT: Private API request failed: HTTP 401: {"code": "401","msg": "401 Miss Signature."}
