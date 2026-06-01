@@ -4,6 +4,3 @@ aiohttp
 aiogram
 python-dotenv
 pytz
-web3
-playwright
-chromium

@@ -1,17 +1,6 @@
 {
     "app": {
-        "game_loop_interval_sec": [
-            20,
-            30
-        ],
-        "spec_loop_interval_sec": 60,
-        "price_update_interval_sec": 1.0,
-        "cancel_delay_sec": 1.0
-    },
-    "risk": {
-        "side": "LONG",
-        "size": 7,
-        "limite_distance_pct": 25
+        "game_loop_interval_sec": 1
     },
     "logger": {
         "log_debug": true,

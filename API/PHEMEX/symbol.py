@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 import aiohttp
 
+
 @dataclass(frozen=True)
 class SymbolInfo:
     symbol: str
@@ -22,6 +23,7 @@ class SymbolInfo:
     lot_size: Optional[float]
     max_leverage: Optional[float]
     delist_time: Optional[int] = None  # Таймстамп делистинга в мс (из timeline[3])
+
 
 class PhemexSymbols:
     def __init__(self, test_mode: bool = False, timeout_sec: float = 20.0, retries: int = 3):
@@ -155,7 +157,7 @@ class PhemexSymbols:
                 uniq.append(s)
         return uniq
 
-async def get_asoon_delisting_symbols(self, quote: str = "USDT") -> List[SymbolInfo]:
+    async def get_asoon_delisting_symbols(self, quote: str = "USDT") -> List[SymbolInfo]:
         """
         Возвращает отфильтрованный список монет, у которых запланирован скорый делистинг
         (таймстамп из timeline[3] больше текущего системного времени).
@@ -163,6 +165,7 @@ async def get_asoon_delisting_symbols(self, quote: str = "USDT") -> List[SymbolI
         rows = await self.get_all(quote=quote)
         now_ms = int(time.time() * 1000)
         return [r for r in rows if r.delist_time and r.delist_time > now_ms]
+
 
 # # ------------------------------------------------------------
 # # БЛОК ТЕСТИРОВАНИЯ: СКОРЫЕ ДЕЛИСТИНГИ (через целевой метод)
@@ -176,7 +179,7 @@ if __name__ == "__main__":
         try:
             print("⏳ Запрашиваем скорые делистинги через get_asoon_delisting_symbols()...")
             
-            # Тестируем целевой метод
+            # Тестируем целевой метод внутри класса
             upcoming_delistings = await api.get_asoon_delisting_symbols(quote="USDT")
             now_ms = int(time.time() * 1000)
             

@@ -104,11 +104,11 @@ if __name__ == "__main__":
         
     async def main():
         load_dotenv(dotenv_path=base_dir / ".env")
-        api_key = os.getenv("PROD_PHEMEX_API_KEY")
-        api_secret = os.getenv("PROD_PHEMEX_API_SECRET")
+        api_key = os.getenv("PHEMEX_API_KEY")
+        api_secret = os.getenv("PHEMEX_API_SECRET")
         
         if not api_key or not api_secret:
-            print("PROD_PHEMEX_API_KEY and PROD_PHEMEX_API_SECRET must be set in .env")
+            print("PHEMEX_API_KEY and PHEMEX_API_SECRET must be set in .env")
             return
             
         async with aiohttp.ClientSession() as session:
