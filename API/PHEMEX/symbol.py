@@ -1,6 +1,7 @@
 # ============================================================
 # FILE: API/PHEMEX/symbol.py
 # ROLE: Phemex USDT Perpetual (Futures) symbols via REST.
+# python -m API.PHEMEX.symbol
 # ============================================================
 
 from __future__ import annotations
@@ -157,16 +158,16 @@ class PhemexSymbols:
                 uniq.append(s)
         return uniq
     
-# # # ----------------------------
-# # # SELF TEST
-# # # ----------------------------
-# # if __name__ == "__main__":
-# #     async def _main():
-# #         api = PhemexSymbols()
-# #         rows = await api.get_all()
-# #         print(f"Symbols: {len(rows)}")
-# #         for r in rows[:20]:
-# #             print(r)
-# #         await api.aclose()
+# ----------------------------
+# SELF TEST
+# ----------------------------
+if __name__ == "__main__":
+    async def _main():
+        api = PhemexSymbols()
+        rows = await api.get_all()
+        print(f"Symbols: {len(rows)}")
+        for r in rows[:20]:
+            print(r)
+        await api.aclose()
 
-# #     asyncio.run(_main())
+    asyncio.run(_main())
