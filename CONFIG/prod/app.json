@@ -1,8 +1,15 @@
 {
     "app": {
-        "delisting_poll_interval_sec": 5.0,
-        "game_loop_interval_sec": 1.0,
-        "test_mode": false
+        "game_loop_interval_sec": [
+            20,
+            30
+        ],
+        "spec_loop_interval_sec": 60
+    },
+    "risk": {
+        "side": "LONG",
+        "size": 7,
+        "limite_distance_pct": 25
     },
     "logger": {
         "log_debug": true,
