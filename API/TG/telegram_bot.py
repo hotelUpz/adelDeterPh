@@ -12,10 +12,28 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton,
 )
+import functools
 
 from c_log import UnifiedLogger
 
 logger = UnifiedLogger("tg_bot", spam_throttle=1.0)
+
+_user_locks = {}
+
+def idempotent_handler(func):
+    @functools.wraps(func)
+    async def wrapper(message: types.Message, *args, **kwargs):
+        user_id = message.from_user.id
+        if _user_locks.get(user_id):
+            await message.answer("⏳ <i>Команда выполняется, пожалуйста подождите...</i>", parse_mode="HTML")
+            return
+        
+        _user_locks[user_id] = True
+        try:
+            return await func(message, *args, **kwargs)
+        finally:
+            _user_locks[user_id] = False
+    return wrapper
 
 # Helper function to check if user is allowed
 def is_allowed(event: types.Message | types.CallbackQuery) -> bool:
@@ -56,6 +74,7 @@ def get_notifications_keyboard(cfg: Any) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 # Command Handlers
+@idempotent_handler
 async def cmd_start_status(message: types.Message):
     if not is_allowed(message):
         return
@@ -74,6 +93,7 @@ async def cmd_start_status(message: types.Message):
     )
     await message.answer(msg, reply_markup=get_main_keyboard())
 
+@idempotent_handler
 async def handle_start_click(message: types.Message):
     if not is_allowed(message):
         return
@@ -86,6 +106,7 @@ async def handle_start_click(message: types.Message):
     await start_monitoring_services()
     await message.answer("🚀 Мониторинг делистингов успешно запущен!", reply_markup=get_main_keyboard())
 
+@idempotent_handler
 async def handle_stop_click(message: types.Message):
     if not is_allowed(message):
         return
@@ -98,6 +119,7 @@ async def handle_stop_click(message: types.Message):
     await stop_monitoring_services()
     await message.answer("🛑 Мониторинг делистингов остановлен.", reply_markup=get_main_keyboard())
 
+@idempotent_handler
 async def handle_delistings_click(message: types.Message):
     if not is_allowed(message):
         return
@@ -126,6 +148,7 @@ async def handle_delistings_click(message: types.Message):
     msg += "\n".join(f"• {chunk}" for chunk in formatted_chunks)
     await message.answer(msg)
 
+@idempotent_handler
 async def handle_active_positions_click(message: types.Message):
     import asyncio
     if not is_allowed(message):
@@ -165,10 +188,9 @@ async def handle_active_positions_click(message: types.Message):
                 })
                 position_symbols.add(symbol)
                 
-        # 2. Определяем список символов для проверки ордеров (позиции + делистинги + кэш детектора)
-        delisted_symbols = ctx.delisted_symbols
-            
-        symbols_to_check = position_symbols.union(delisted_symbols)
+        # 2. Определяем список символов для проверки ордеров (позиции + кэш детектора)
+        # ВАЖНО: Нельзя добавлять delisted_symbols, иначе полетят 278 REST запросов и 429 Too Many Requests
+        symbols_to_check = position_symbols.copy()
         if ctx.detector:
             symbols_to_check = symbols_to_check.union(ctx.detector.active_symbols)
             
