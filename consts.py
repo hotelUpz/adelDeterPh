@@ -25,9 +25,16 @@ SPAM_THROTTLE_SEC = 60.0
 class AppConfig:
     def __init__(self, raw: dict):
         self.delisting_poll_interval_sec = float(raw.get("delisting_poll_interval_sec", 5.0))
-        self.game_loop_interval_sec = float(raw.get("game_loop_interval_sec", 20.0))
+        val = raw.get("game_loop_interval_sec", 20.0)
+        if isinstance(val, list):
+            self.game_loop_interval_sec = [float(x) for x in val]
+        else:
+            self.game_loop_interval_sec = float(val)
         self.telegram_burst_delay_sec = float(raw.get("telegram_burst_delay_sec", 1.0))
         self.push_burst_delay_sec = float(raw.get("push_burst_delay_sec", 30.0))
+        self.spec_loop_interval_sec = float(raw.get("spec_loop_interval_sec", 60.0))
+        self.price_update_interval_sec = float(raw.get("price_update_interval_sec", 1.5))
+        self.cancel_delay_sec = float(raw.get("cancel_delay_sec", 1.0))
 
 class AlertChannelConfig:
     def __init__(self, raw: dict):

@@ -47,13 +47,10 @@ def is_allowed(event: types.Message | types.CallbackQuery) -> bool:
 def get_main_keyboard() -> ReplyKeyboardMarkup:
     btn_start = KeyboardButton(text="🚀 СТАРТ")
     btn_stop = KeyboardButton(text="🛑 СТОП")
-    btn_delistings = KeyboardButton(text="⚠️ Делистинги")
-    btn_active_positions = KeyboardButton(text="📊 Активные Позиции")
     btn_notifications = KeyboardButton(text="🔔 Настройки оповещений")
     
     keyboard = [
         [btn_start, btn_stop],
-        [btn_delistings, btn_active_positions],
         [btn_notifications]
     ]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -257,8 +254,8 @@ async def handle_active_positions_click(message: types.Message):
         if active_positions:
             for p in sorted(active_positions, key=lambda x: x["symbol"]):
                 sym = p["symbol"]
-                warn = "⚠️ " if sym in delisted_symbols else "• "
-                suffix = " <b>(ДЕЛИСТИНГ!)</b>" if sym in delisted_symbols else ""
+                warn = "⚠️ " if sym in ctx.delisted_symbols else "• "
+                suffix = " <b>(ДЕЛИСТИНГ!)</b>" if sym in ctx.delisted_symbols else ""
                 msg += f"{warn}{sym}: {p['side']}, {p['size']}{suffix}\n"
         else:
             msg += "• <i>нет активных позиций</i>\n"
@@ -270,8 +267,8 @@ async def handle_active_positions_click(message: types.Message):
         if active_orders:
             for o in sorted(active_orders, key=lambda x: x["symbol"]):
                 sym = o["symbol"]
-                warn = "⚠️ " if sym in delisted_symbols else "• "
-                suffix = " <b>(ДЕЛИСТИНГ!)</b>" if sym in delisted_symbols else ""
+                warn = "⚠️ " if sym in ctx.delisted_symbols else "• "
+                suffix = " <b>(ДЕЛИСТИНГ!)</b>" if sym in ctx.delisted_symbols else ""
                 msg += f"{warn}{sym}: {o['side']} Limit, Price: {o['price']}, Qty: {o['qty']}{suffix}\n"
         else:
             msg += "• <i>нет лимитных ордеров</i>\n"
@@ -283,8 +280,8 @@ async def handle_active_positions_click(message: types.Message):
         if conditional_orders:
             for o in sorted(conditional_orders, key=lambda x: x["symbol"]):
                 sym = o["symbol"]
-                warn = "⚠️ " if sym in delisted_symbols else "• "
-                suffix = " <b>(ДЕЛИСТИНГ!)</b>" if sym in delisted_symbols else ""
+                warn = "⚠️ " if sym in ctx.delisted_symbols else "• "
+                suffix = " <b>(ДЕЛИСТИНГ!)</b>" if sym in ctx.delisted_symbols else ""
                 msg += f"{warn}{sym}: {o['side']}, Trigger: {o['trigger']}, Qty: {o['qty']}{suffix}\n"
         else:
             msg += "• <i>нет условных ордеров</i>\n"

@@ -4,7 +4,9 @@
             20,
             30
         ],
-        "spec_loop_interval_sec": 60
+        "spec_loop_interval_sec": 60,
+        "price_update_interval_sec": 1.0,
+        "cancel_delay_sec": 1.0
     },
     "risk": {
         "side": "LONG",

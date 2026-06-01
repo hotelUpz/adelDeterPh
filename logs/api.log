@@ -1,0 +1,6 @@
+2026-06-01 16:21:05 | ERROR | api | API Request Failed (GET /g-accounts/account): HTTP 401: {"code": "401","msg": "401 Miss Signature."}
+2026-06-01 16:21:21 | ERROR | api | API Request Failed (GET /accounts/account): HTTP 401: {"code": "401","msg": "401 Miss Signature."}
+2026-06-01 16:21:55 | ERROR | api | API Request Failed (GET /accounts/account): HTTP 401: {"code": "401","msg": "401 Miss Signature."}
+2026-06-01 16:38:27 | ERROR | api | API Request Failed (GET /g-accounts/accountPositions): Phemex Error [39108]: Currency not supported.
+2026-06-01 16:38:59 | ERROR | api | API Request Failed (GET /accounts/accountPositions): Phemex Error [39108]: Currency not supported.
+2026-06-01 16:38:59 | WARNING | api | Failed to fetch standard positions for USD: Private API request failed: Phemex Error [39108]: Currency not supported.

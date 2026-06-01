@@ -1,12 +1,13 @@
 # ============================================================
 # FILE: API/PHEMEX/symbol.py
-# ROLE: Phemex USDT Perpetual (Futures) symbols via REST.
+# ROLE: Phemex USDT Perpetual (Futures) symbols via REST (Plus Version).
 # python -m API.PHEMEX.symbol
 # ============================================================
 
 from __future__ import annotations
 
 import asyncio
+import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -20,14 +21,13 @@ class SymbolInfo:
     tick_size: Optional[float]
     lot_size: Optional[float]
     max_leverage: Optional[float]
-    # min_qty_notional (либо в долларах) -- если отдают -- берем.
+    delist_time: Optional[int] = None  # Таймстамп делистинга в мс (из timeline[3])
 
 class PhemexSymbols:
-    BASE_URL = "https://api.phemex.com"
-
-    def __init__(self, timeout_sec: float = 20.0, retries: int = 3):
+    def __init__(self, test_mode: bool = False, timeout_sec: float = 20.0, retries: int = 3):
         self._timeout = aiohttp.ClientTimeout(total=float(timeout_sec))
         self._retries = int(retries)
+        self.BASE_URL = "https://testnet-api.phemex.com" if test_mode else "https://api.phemex.com"
         self._session: aiohttp.ClientSession | None = None
         self._session_lock = asyncio.Lock()
 
@@ -108,15 +108,20 @@ class PhemexSymbols:
 
         status = str(obj.get("status") or obj.get("state") or obj.get("symbolStatus") or "Listed")
 
-        # ВАЖНО:
-        # Не подменяем tickSize через priceScale и lotSize через ratioScale.
-        # Это разные сущности.
         tick_size = self._to_float(obj.get("tickSize"))
         lot_size = self._to_float(obj.get("qtyStepSize"))
-        max_lvg = self._to_float(
-            obj.get("limitOrderMaxLeverage") or obj.get("maxLeverage"),
-            20,
-        )
+        max_lvg = self._to_float(obj.get("limitOrderMaxLeverage") or obj.get("maxLeverage"), 20)
+
+        # Вытаскиваем делистинг таймстамп из timeline[3]
+        delist_timestamp = None
+        timeline = obj.get("timeline")
+        if isinstance(timeline, list) and len(timeline) > 3:
+            try:
+                val = int(timeline[3])
+                if val > 0:
+                    delist_timestamp = val
+            except (ValueError, TypeError):
+                pass
 
         return SymbolInfo(
             symbol=sym_s.upper(),
@@ -125,10 +130,11 @@ class PhemexSymbols:
             tick_size=tick_size,
             lot_size=lot_size,
             max_leverage=max_lvg,
+            delist_time=delist_timestamp
         )
 
-    async def get_all(self, quote: str = "USDT", only_active: bool = True) -> List[SymbolInfo]:
-        data = await self._get_json("/public/products")
+    async def get_all(self, quote: str = "USDT") -> List[SymbolInfo]:
+        data = await self._get_json("/public/products-plus")
         root = data.get("data") if isinstance(data, dict) else None
         if not isinstance(root, dict): return []
 
@@ -138,17 +144,8 @@ class PhemexSymbols:
             for it in arr:
                 if isinstance(it, dict):
                     si = self._parse_perp(it, quote=quote)
-                    if si and (not only_active or self._is_active_status(si.status)):
+                    if si:
                         out.append(si)
-
-        if not out:
-            for _, v in root.items():
-                if isinstance(v, list):
-                    for it in v:
-                        if isinstance(it, dict):
-                            si = self._parse_perp(it, quote=quote)
-                            if si and (not only_active or self._is_active_status(si.status)):
-                                out.append(si)
 
         seen = set()
         uniq: List[SymbolInfo] = []
@@ -157,17 +154,63 @@ class PhemexSymbols:
                 seen.add(s.symbol)
                 uniq.append(s)
         return uniq
-    
-# ----------------------------
-# SELF TEST
-# ----------------------------
+
+async def get_asoon_delisting_symbols(self, quote: str = "USDT") -> List[SymbolInfo]:
+        """
+        Возвращает отфильтрованный список монет, у которых запланирован скорый делистинг
+        (таймстамп из timeline[3] больше текущего системного времени).
+        """
+        rows = await self.get_all(quote=quote)
+        now_ms = int(time.time() * 1000)
+        return [r for r in rows if r.delist_time and r.delist_time > now_ms]
+
+# # ------------------------------------------------------------
+# # БЛОК ТЕСТИРОВАНИЯ: СКОРЫЕ ДЕЛИСТИНГИ (через целевой метод)
+# # ------------------------------------------------------------
 if __name__ == "__main__":
+    from datetime import datetime, timezone
+
     async def _main():
-        api = PhemexSymbols()
-        rows = await api.get_all()
-        print(f"Symbols: {len(rows)}")
-        for r in rows[:20]:
-            print(r)
-        await api.aclose()
+        # Поставь True, если нужно проверить тестнет
+        api = PhemexSymbols(test_mode=False) 
+        try:
+            print("⏳ Запрашиваем скорые делистинги через get_asoon_delisting_symbols()...")
+            
+            # Тестируем целевой метод
+            upcoming_delistings = await api.get_asoon_delisting_symbols(quote="USDT")
+            now_ms = int(time.time() * 1000)
+            
+            print(f"Монет со скорым делистингом обнаружено: {len(upcoming_delistings)}\n")
+            
+            if not upcoming_delistings:
+                print("✅ На данный момент в API нет запланированных будущих делистингов.")
+            else:
+                print("=" * 95)
+                print(f"{'СИМВОЛ':<14} | {'СТАТУС':<10} | {'ТОЧНАЯ ДАТА ДЕЛИСТИНГА (UTC)':<26} | {'ОСТАЛОСЬ ДО ВЫЛЕТА'}")
+                print("=" * 95)
+                
+                for r in upcoming_delistings:
+                    # Вычисляем разницу во времени
+                    diff_ms = r.delist_time - now_ms
+                    diff_sec = diff_ms // 1000
+                    
+                    # Переводим в дни, часы, минуты и секунды
+                    days = diff_sec // 86400
+                    hours = (diff_sec % 86400) // 3600
+                    minutes = (diff_sec % 3600) // 60
+                    seconds = diff_sec % 60
+                    
+                    time_left_str = f"{days}д {hours}ч {minutes}м {seconds}с"
+                    
+                    # Превращаем таймстамп миллисекунд в точную дату UTC
+                    exact_date = datetime.fromtimestamp(r.delist_time / 1000, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+                    
+                    print(f"{r.symbol:<14} | {r.status:<10} | {exact_date:<26} | {time_left_str}")
+                print("=" * 95)
+                
+        except Exception as e:
+            print(f"❌ Ошибка во время выполнения теста: {e}")
+        finally:
+            await api.aclose()
 
     asyncio.run(_main())

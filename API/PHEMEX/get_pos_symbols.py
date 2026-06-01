@@ -1,6 +1,7 @@
 # ============================================================
 # FILE: API/PHEMEX/get_pos_symbols.py
 # ROLE: Резервный REST клиент для определения активных позиций/ордеров.
+# python -m API.PHEMEX.get_pos_symbols
 # ============================================================
 
 import time
@@ -8,7 +9,7 @@ import json
 import hmac
 import hashlib
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 import aiohttp
 from c_log import UnifiedLogger
 
@@ -65,11 +66,55 @@ class PhemexPrivateRESTFallback:
         logger.error(f"API Request Failed ({method} {path}): {last_err}")
         raise RuntimeError(f"Private API request failed: {last_err}")
 
-    async def get_active_positions(self) -> Dict[str, Any]:
-        return await self._request("GET", "/g-accounts/accountPositions", query_no_q="currency=USDT")
+    async def get_active_positions(self, currency: str = "USDT") -> Dict[str, Any]:
+        return await self._request("GET", "/g-accounts/accountPositions", query_no_q=f"currency={currency}")
 
-    async def get_active_orders(self, symbol: str) -> Dict[str, Any]:
-        return await self._request("GET", "/g-orders/activeList", query_no_q=f"symbol={symbol}")
+    async def get_active_symbols(self) -> Set[str]:
+        """
+        Получает список символов с активными открытыми позициями.
+        """
+        active_symbols = set()
+        try:
+            res = await self.get_active_positions("USDT")
+            if res and res.get("code") == 0:
+                positions = res.get("data", {}).get("positions", [])
+                for p in positions:
+                    side = p.get("side", "None")
+                    size = abs(float(p.get("size", 0) or p.get("sizeRv", 0) or 0))
+                    if side != "None" and size > 0:
+                        symbol = p.get("symbol")
+                        if symbol:
+                            active_symbols.add(symbol.upper())
+        except Exception as e:
+            logger.warning(f"Failed to fetch active positions: {e}")
+            
+        return active_symbols
 
-    async def get_conditional_orders(self, symbol: str) -> Dict[str, Any]:
-        return await self._request("GET", "/g-orders/untriggeredList", query_no_q=f"symbol={symbol}")
+
+if __name__ == "__main__":
+    import os
+    import sys
+    from dotenv import load_dotenv
+    from pathlib import Path
+    
+    # Add workspace directory to python path
+    base_dir = Path(__file__).resolve().parent.parent.parent
+    if str(base_dir) not in sys.path:
+        sys.path.append(str(base_dir))
+        
+    async def main():
+        load_dotenv(dotenv_path=base_dir / ".env")
+        api_key = os.getenv("PROD_PHEMEX_API_KEY")
+        api_secret = os.getenv("PROD_PHEMEX_API_SECRET")
+        
+        if not api_key or not api_secret:
+            print("PROD_PHEMEX_API_KEY and PROD_PHEMEX_API_SECRET must be set in .env")
+            return
+            
+        async with aiohttp.ClientSession() as session:
+            client = PhemexPrivateRESTFallback(api_key, api_secret, session)
+            
+            active_symbols = await client.get_active_symbols()
+            print("Активные символы:", list(active_symbols))
+
+    asyncio.run(main())

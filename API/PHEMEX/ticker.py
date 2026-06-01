@@ -47,22 +47,22 @@ class PhemexTickerAPI:
                         
             return result
 
-# # --- Блок для локального тестирования ---
-# if __name__ == "__main__":
-#     import asyncio
+# --- Блок для локального тестирования ---
+if __name__ == "__main__":
+    import asyncio
 
-#     async def main():
-#         api = PhemexTickerAPI()
-#         try:
-#             prices = await api.get_all_prices()
-#             print(f"Получено {len(prices)} тикеров от Phemex")
+    async def main():
+        api = PhemexTickerAPI()
+        try:
+            prices = await api.get_all_prices()
+            print(f"Получено {len(prices)} тикеров от Phemex")
             
-#             # Выведем первые 10 тикеров для проверки
-#             for i, (sym, price) in enumerate(prices.items()):
-#                 print(f"{sym}: {price}")
-#                 if i >= 9:
-#                     break
-#         finally:
-#             await api.aclose()
+            # Выведем первые 10 тикеров для проверки
+            for i, (sym, price) in enumerate(prices.items()):
+                print(f"{sym}: {price}")
+                if i >= 9:
+                    break
+        finally:
+            await api.aclose()
 
-#     asyncio.run(main())
+    asyncio.run(main())
