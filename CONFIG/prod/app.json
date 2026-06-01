@@ -1,9 +1,7 @@
 {
     "app": {
         "game_loop_interval_sec": 1,
-        "test_mode": false,
-        "telegram_burst_delay_sec": 1.0,
-        "push_burst_delay_sec": 30.0
+        "telegram_burst_delay_sec": 1.0
     },
     "logger": {
         "log_debug": true,
