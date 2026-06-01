@@ -1,7 +1,6 @@
 # ============================================================
 # FILE: API/PHEMEX/get_pos_symbols.py
 # ROLE: Резервный REST клиент для определения активных позиций/ордеров.
-# python -m API.PHEMEX.get_pos_symbols
 # ============================================================
 
 import time
@@ -89,7 +88,6 @@ class PhemexPrivateRESTFallback:
             logger.warning(f"Failed to fetch active positions: {e}")
             
         return active_symbols
-
 
 if __name__ == "__main__":
     import os

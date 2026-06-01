@@ -1,7 +1,6 @@
 # ============================================================
 # FILE: API/PHEMEX/symbol.py
 # ROLE: Phemex USDT Perpetual (Futures) symbols via REST (Plus Version).
-# python -m API.PHEMEX.symbol
 # ============================================================
 
 from __future__ import annotations
@@ -13,7 +12,6 @@ from typing import Any, Dict, List, Optional
 
 import aiohttp
 
-
 @dataclass(frozen=True)
 class SymbolInfo:
     symbol: str
@@ -23,7 +21,6 @@ class SymbolInfo:
     lot_size: Optional[float]
     max_leverage: Optional[float]
     delist_time: Optional[int] = None  # Таймстамп делистинга в мс (из timeline[3])
-
 
 class PhemexSymbols:
     def __init__(self, test_mode: bool = False, timeout_sec: float = 20.0, retries: int = 3):
@@ -166,6 +163,24 @@ class PhemexSymbols:
         now_ms = int(time.time() * 1000)
         return [r for r in rows if r.delist_time and r.delist_time > now_ms]
 
+    async def get_status_delisting_symbols(self, quote: str = "USDT") -> List[SymbolInfo]:
+        """
+        Возвращает список монет, чей статус указывает на процесс делистинга
+        (содержит delist, settle, close и т.д.), но еще не полностью 'Delisted'.
+        Это резервный метод на случай если timeline[3] запаздывает.
+        """
+        rows = await self.get_all(quote=quote)
+        res = []
+        for r in rows:
+            s = (r.status or "").strip().lower()
+            if s == "delisted":
+                continue  # Уже делистнут окончательно
+            
+            # Оставляем только строгие маркеры делистинга и расчетов (settle)
+            banned = ("delist", "settle")
+            if any(word in s for word in banned):
+                res.append(r)
+        return res
 
 # # ------------------------------------------------------------
 # # БЛОК ТЕСТИРОВАНИЯ: СКОРЫЕ ДЕЛИСТИНГИ (через целевой метод)
@@ -177,7 +192,7 @@ if __name__ == "__main__":
         # Поставь True, если нужно проверить тестнет
         api = PhemexSymbols(test_mode=False) 
         try:
-            print("⏳ Запрашиваем скорые делистинги через get_asoon_delisting_symbols()...")
+            print("[TEST] Запрашиваем скорые делистинги через get_asoon_delisting_symbols()...")
             
             # Тестируем целевой метод внутри класса
             upcoming_delistings = await api.get_asoon_delisting_symbols(quote="USDT")
@@ -186,7 +201,7 @@ if __name__ == "__main__":
             print(f"Монет со скорым делистингом обнаружено: {len(upcoming_delistings)}\n")
             
             if not upcoming_delistings:
-                print("✅ На данный момент в API нет запланированных будущих делистингов.")
+                print("[OK] На данный момент в API нет запланированных будущих делистингов.")
             else:
                 print("=" * 95)
                 print(f"{'СИМВОЛ':<14} | {'СТАТУС':<10} | {'ТОЧНАЯ ДАТА ДЕЛИСТИНГА (UTC)':<26} | {'ОСТАЛОСЬ ДО ВЫЛЕТА'}")
@@ -212,7 +227,7 @@ if __name__ == "__main__":
                 print("=" * 95)
                 
         except Exception as e:
-            print(f"❌ Ошибка во время выполнения теста: {e}")
+            print(f"[ERROR] Ошибка во время выполнения теста: {e}")
         finally:
             await api.aclose()
 

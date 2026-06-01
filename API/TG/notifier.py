@@ -1,3 +1,8 @@
+# ============================================================
+# FILE: API/TG/notifier.py
+# ROLE: Telegram нотификатор и менеджер агрегации всех каналов уведомлений.
+# ============================================================
+
 from typing import Optional, List, Any
 from c_log import UnifiedLogger
 from API.pushover.base import NotifierBase
@@ -60,7 +65,6 @@ class TelegramNotifier(NotifierBase):
             
         return any(results)
 
-
 class NotificationManager:
     def __init__(self, notifiers: List[NotifierBase]) -> None:
         self.notifiers = notifiers
@@ -74,14 +78,7 @@ class NotificationManager:
         return True
 
     async def send(self, title: str, body: str, sound: Optional[str] = None, platforms: Optional[List[str]] = None, priority: int = 1, **kwargs) -> bool:
-        try:
-            from consts import _store
-            if _store.config.app.test_mode:
-                if not title.startswith("[SANDBOX_TEST]"):
-                    title = f"[SANDBOX_TEST] {title}"
-                logger.info("🚫 [TEST MODE] NotificationManager: логируем входящий алерт:\n[%s] %s\n%s", title, priority, body)
-        except Exception:
-            pass
+        # Тестового режима больше нет.
 
         if not self.enabled:
             return False
@@ -104,20 +101,14 @@ class NotificationManager:
         
         return any(results)
 
-
-
 if __name__ == "__main__":
     import asyncio
     import os
-    import sys
     from dotenv import load_dotenv
     from consts import ConfigStore
     from aiogram import Bot
     from aiogram.client.default import DefaultBotProperties
     from aiogram.enums import ParseMode
-
-    if sys.platform == "win32":
-        sys.stdout.reconfigure(encoding='utf-8')
 
     async def test():
         env_file = ".env.test"

@@ -1,3 +1,8 @@
+# ============================================================
+# FILE: API/pushover/alertzy.py
+# ROLE: Реализация уведомлений через Alertzy (Apple iOS 2).
+# ============================================================
+
 import aiohttp
 from typing import Optional
 from c_log import UnifiedLogger
@@ -37,13 +42,7 @@ class AlertzyNotifier(NotifierBase):
         if not self.enabled:
             return False
 
-        try:
-            from consts import _store
-            if _store.config.app.test_mode:
-                logger.info("🚫 [TEST MODE] Alertzy notify bypassed (logging only):\nTitle: %s\nBody: %s", title, body)
-                return True
-        except Exception:
-            pass
+        # Тестового режима больше нет.
 
         payload = {
             "accountKey": self.account_key,
@@ -74,16 +73,11 @@ class AlertzyNotifier(NotifierBase):
             finally:
                 self._last_send_time = time.monotonic()
 
-
 if __name__ == "__main__":
     import asyncio
     import os
-    import sys
     from dotenv import load_dotenv
     from consts import ConfigStore
-
-    if sys.platform == "win32":
-        sys.stdout.reconfigure(encoding='utf-8')
 
     async def test():
         env_file = ".env.test"

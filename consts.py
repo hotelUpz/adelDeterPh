@@ -14,12 +14,20 @@ BASE_DIR = Path(__file__).resolve().parent
 class AppConfig:
     def __init__(self, data: dict):
         self.game_loop_interval_sec = int(data["game_loop_interval_sec"])
-        self.test_mode = bool(data["test_mode"])
         self.telegram_burst_delay_sec = float(data["telegram_burst_delay_sec"])
         self.push_burst_delay_sec = float(data["push_burst_delay_sec"])
 
+class EmailMonitorConfig:
+    def __init__(self, data: dict):
+        self.enabled = bool(data["enabled"])
+        self.poll_interval_sec = int(data["poll_interval_sec"])
+        self.max_messages = int(data["max_messages"])
+        self.imap_server = str(data["imap_server"])
+        self.sender_filter = str(data["sender_filter"])
+
 class LoggerConfig:
     def __init__(self, data: dict):
+        self.log_debug_debug = bool(data.get("log_debug_debug", False))
         self.log_debug = bool(data["log_debug"])
         self.log_error = bool(data["log_error"])
         self.log_info = bool(data["log_info"])
@@ -39,6 +47,7 @@ class FullConfig:
         
         # Объекты строгого маппинга параметров
         self.app = AppConfig(app_data["app"])
+        self.email_monitor = EmailMonitorConfig(app_data["email_monitor"])
         self.logger = LoggerConfig(app_data["logger"])
         self.telegram_alerts = AlertChannelConfig(alerts_data["telegram_alerts"])
         self.notifier_android = AlertChannelConfig(alerts_data["pushover_android"])
@@ -62,7 +71,6 @@ class FullConfig:
         self.delisting_interval_sec = float(alerts_data["delisting_interval_sec"])
         self.alert_title_template = str(alerts_data["alert_title_template"])
         self.alert_body_template = str(alerts_data["alert_body_template"])
-
 
 class ConfigStore:
     def __init__(self, config_dir_path: str = "CONFIG/prod"):
@@ -97,6 +105,7 @@ class ConfigStore:
 try:
     with open(BASE_DIR / "CONFIG/prod/app.json", "r", encoding="utf-8") as _f:
         _app_data = json.load(_f)
+    LOG_DEBUG_DEBUG = bool(_app_data["logger"].get("log_debug_debug", False))
     LOG_DEBUG = bool(_app_data["logger"]["log_debug"])
     LOG_INFO = bool(_app_data["logger"]["log_info"])
     LOG_WARNING = bool(_app_data["logger"]["log_warning"])
@@ -105,6 +114,7 @@ try:
     SPAM_THROTTLE_SEC = float(_app_data["logger"]["spam_throttle_sec"])
     TZ = pytz.timezone(_app_data["logger"]["time_zone"])
 except Exception:
+    LOG_DEBUG_DEBUG = False
     LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR = True, True, True, True
     MAX_LOG_LINES = 10000
     SPAM_THROTTLE_SEC = 60.0

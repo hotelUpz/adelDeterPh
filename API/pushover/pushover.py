@@ -1,3 +1,8 @@
+# ============================================================
+# FILE: API/pushover/pushover.py
+# ROLE: Реализация уведомлений через Pushover (Android).
+# ============================================================
+
 import aiohttp
 from typing import Optional
 from c_log import UnifiedLogger
@@ -38,13 +43,7 @@ class PushoverNotifier(NotifierBase):
         if not self.enabled:
             return False
 
-        try:
-            from consts import _store
-            if _store.config.app.test_mode:
-                logger.info("🚫 [TEST MODE] Pushover notify bypassed (logging only):\nTitle: %s\nBody: %s", title, body)
-                return True
-        except Exception:
-            pass
+        # Тестового режима больше нет.
 
         # Map priority >= 1 to 1 for Pushover to avoid server-side repeating.
         # We control all alert repeats ourselves via our Python codebase.
@@ -81,16 +80,11 @@ class PushoverNotifier(NotifierBase):
             finally:
                 self._last_send_time = time.monotonic()
 
-
 if __name__ == "__main__":
     import asyncio
     import os
-    import sys
     from dotenv import load_dotenv
     from consts import ConfigStore
-
-    if sys.platform == "win32":
-        sys.stdout.reconfigure(encoding='utf-8')
 
     async def test():
         env_file = ".env.test"

@@ -1,9 +1,18 @@
 {
     "app": {
-        "game_loop_interval_sec": 1,
-        "telegram_burst_delay_sec": 1.0
+        "game_loop_interval_sec": 2,
+        "telegram_burst_delay_sec": 1.0,
+        "push_burst_delay_sec": 5.0
+    },
+    "email_monitor": {
+        "enabled": true,
+        "poll_interval_sec": 6,
+        "max_messages": 12,
+        "imap_server": "imap.gmail.com",
+        "sender_filter": "Phemex"
     },
     "logger": {
+        "log_debug_debug": true,
         "log_debug": true,
         "log_error": true,
         "log_info": true,

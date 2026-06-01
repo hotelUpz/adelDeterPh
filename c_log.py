@@ -1,17 +1,13 @@
-# File: c_log.py
-# Role: Unified logger with timezone support and file rotation.
+# ============================================================
+# FILE: c_log.py
+# ROLE: Унифицированный логгер с поддержкой таймзон и ротации файлов.
+# ============================================================
+
 from __future__ import annotations
 
 import inspect
 import logging
 import sys
-if sys.platform == "win32":
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
-    except Exception:
-        pass
-# import os
 import time
 from datetime import datetime
 from functools import wraps
@@ -31,18 +27,7 @@ class _TzFormatter(logging.Formatter):
         return dt.isoformat()
 
     def format(self, record):
-        try:
-            from consts import _store
-            is_test = _store.config.app.test_mode
-        except Exception:
-            is_test = False
-
-        if is_test:
-            if isinstance(record.msg, str) and not record.msg.startswith("[SANDBOX_TEST]"):
-                record.msg = f"[SANDBOX_TEST] {record.msg}"
         return super().format(record)
-
-
 
 _all_logs_handler: Optional[RotatingFileHandler] = None
 
@@ -58,18 +43,10 @@ def get_all_logs_handler(log_dir: str | Path, approx_line_len: int = 350) -> Rot
         _all_logs_handler.setFormatter(formatter)
     return _all_logs_handler
 
-
 class UnifiedLogger:
     def __init__(self, name: str, log_dir: str | Path = None, max_lines: int | None = None, context: Optional[str] = None, spam_throttle: float | None = None):
         if log_dir is None:
-            try:
-                from consts import _store
-                if _store.config.app.test_mode:
-                    log_dir = consts.BASE_DIR / "logs" / "test"
-                else:
-                    log_dir = consts.BASE_DIR / "logs"
-            except Exception:
-                log_dir = consts.BASE_DIR / "logs"
+            log_dir = consts.BASE_DIR / "logs"
         if max_lines is None:
             max_lines = consts.MAX_LOG_LINES
         Path(log_dir).mkdir(parents=True, exist_ok=True)
@@ -126,7 +103,11 @@ class UnifiedLogger:
             if self._check_spam(formatted_msg): return
             self._logger.info(msg, *args, **kwargs)
 
-# critical ?
+    def critical(self, msg: str, *args, **kwargs) -> None:
+        if consts.LOG_ERROR:
+            formatted_msg = msg % args if args else msg
+            if self._check_spam(formatted_msg): return
+            self._logger.critical(msg, *args, **kwargs)
 
     def warning(self, msg: str, *args, **kwargs) -> None:
         if consts.LOG_WARNING:

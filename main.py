@@ -1,4 +1,3 @@
-# File: main.py
 # ============================================================
 # FILE: main.py
 # ROLE: Точка входа (Entry point). Инициализация зависимостей и запуск приложения.
@@ -17,13 +16,13 @@ from aiogram.enums import ParseMode
 from consts import _store
 from c_log import UnifiedLogger
 
-# Импорт оркестратора и обработчиков UI
-from CORE.bot import ctx
+from CORE.bot import DelistingOrchestrator
 from API.TG.telegram_bot import register_handlers
 
 # Импорт API биржи
 from API.PHEMEX.symbol import PhemexSymbols
 from API.PHEMEX.get_pos_symbols import PhemexPrivateRESTFallback
+from API.GMAIL.gmail_monitor import GmailMonitor
 
 # Импорт модулей нотификации
 from API.TG.notifier import TelegramNotifier, NotificationManager
@@ -31,14 +30,7 @@ from API.pushover.pushover import PushoverNotifier
 from API.pushover.techulus import TechulusPushNotifier
 from API.pushover.alertzy import AlertzyNotifier
 
-if sys.platform == "win32":
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-    except Exception:
-        pass
-
 logger = UnifiedLogger("main")
-
 
 async def main():
     load_dotenv()
@@ -62,7 +54,7 @@ async def main():
 
     try:
         # 3. Инициализация API Phemex
-        symbols_api = PhemexSymbols(test_mode=cfg.app.test_mode)
+        symbols_api = PhemexSymbols(test_mode=False)
         private_client = PhemexPrivateRESTFallback(
             api_key=os.getenv("PHEMEX_API_KEY", ""),
             api_secret=os.getenv("PHEMEX_API_SECRET", ""),
@@ -83,11 +75,20 @@ async def main():
         ])
 
         # 5. Инъекция собранных зависимостей в ядро оркестратора
+        # Получаем полный список монет для парсера почты
+        all_symbols_info = await symbols_api.get_all(quote="USDT")
+        known_symbols = [s.symbol for s in all_symbols_info]
+        gmail_monitor = GmailMonitor(all_known_symbols=known_symbols)
+        
+        ctx = DelistingOrchestrator()
+        dp["ctx"] = ctx
+        
         ctx.inject_dependencies(
             bot=bot,
             symbols_api=symbols_api,
             private_client=private_client,
-            notifier_manager=notifier_manager
+            notifier_manager=notifier_manager,
+            gmail_monitor=gmail_monitor
         )
 
         # 6. Запуск гейм-лупы и Telegram polling-сервера
@@ -105,13 +106,11 @@ async def main():
         await symbols_api.aclose()
         await bot.session.close()
 
-
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         print("\nProcess terminated by user.")
-
 
 # # chmod 600 ssh_key.txt
 # # eval "$(ssh-agent -s)" 
