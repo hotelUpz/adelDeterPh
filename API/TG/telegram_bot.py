@@ -45,13 +45,13 @@ def is_allowed(event: types.Message | types.CallbackQuery) -> bool:
 
 # Keyboards
 def get_main_keyboard() -> ReplyKeyboardMarkup:
-    btn_start = KeyboardButton(text="🚀 СТАРТ")
-    btn_stop = KeyboardButton(text="🛑 СТОП")
+    btn_start         = KeyboardButton(text="🚀 СТАРТ")
+    btn_stop          = KeyboardButton(text="🛑 СТОП")
     btn_notifications = KeyboardButton(text="🔔 Настройки оповещений")
-    
+
     keyboard = [
         [btn_start, btn_stop],
-        [btn_notifications]
+        [btn_notifications],
     ]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
@@ -360,16 +360,14 @@ def register_handlers(dp: Dispatcher):
     # Commands
     dp.message.register(cmd_start_status, Command("start"))
     dp.message.register(cmd_start_status, Command("status"))
-    dp.message.register(handle_start_click, Command("stop_monitoring")) # legacy name safety
     dp.message.register(handle_start_click, Command("start_monitoring"))
-    
-    # Text buttons
+    dp.message.register(handle_stop_click, Command("stop_monitoring"))
+
+    # Text buttons (Активные Позиции и Делистинги — убраны по ТЗ)
     dp.message.register(handle_start_click, F.text == "🚀 СТАРТ")
     dp.message.register(handle_stop_click, F.text == "🛑 СТОП")
-    dp.message.register(handle_delistings_click, F.text == "⚠️ Делистинги")
-    dp.message.register(handle_active_positions_click, F.text == "📊 Активные Позиции")
     dp.message.register(handle_notifications_click, F.text == "🔔 Настройки оповещений")
-    
+
     # Callbacks
     dp.callback_query.register(toggle_alerts_callback, F.data.startswith("toggle_alerts:"))
     dp.callback_query.register(refresh_settings_callback, F.data == "refresh_settings")
