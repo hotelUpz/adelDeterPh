@@ -126,6 +126,8 @@ class UnifiedLogger:
             if self._check_spam(formatted_msg): return
             self._logger.info(msg, *args, **kwargs)
 
+# critical ?
+
     def warning(self, msg: str, *args, **kwargs) -> None:
         if consts.LOG_WARNING:
             formatted_msg = msg % args if args else msg

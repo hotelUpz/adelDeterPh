@@ -163,6 +163,7 @@ class DelistingOrchestrator:
             logger.error("Не удалось отправить нотификацию для %s: %s", symbols_str, e)
 
 
+
 # Глобальный синглтон-контекст. Зависимости вливаются снаружи из main.py
 ctx: DelistingOrchestrator = DelistingOrchestrator()
 
