@@ -119,7 +119,7 @@ if __name__ == "__main__":
 # # git push --set-upstream origin master
 # # git config --global push.autoSetupRemote true
 # # ssh -T git@github.com 
-# # git log -1
+# # git log -1 
 
 # # git add .
 # # git commit -m "plh37"
