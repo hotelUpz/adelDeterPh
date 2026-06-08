@@ -6,7 +6,7 @@
         "enabled": false
     },
     "pushover_android": {
-        "enabled": true
+        "enabled": false
     },
     "notifier_join_android": {
         "enabled": true,
