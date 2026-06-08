@@ -197,3 +197,60 @@ class DelistingOrchestrator:
         except Exception as e:
             logger.error("Не удалось отправить нотификацию для %s: %s", symbols_str, e)
 
+
+
+# async def run_game_loop(self) -> None:
+#     while self.is_monitoring:
+#         try:
+#             cfg = self.config_store.config
+#             now = time.time()
+#             found_delistings: Dict[str, str] = {}
+
+#             # Только email
+#             if self.gmail_monitor and self.gmail_monitor.enabled:
+#                 email_symbols = await self.gmail_monitor.get_delisted_symbols()
+#                 for s in email_symbols:
+#                     sym = self.normalize_symbol(s)
+#                     found_delistings[sym] = "Email"
+
+#             self.delisted_symbols = set(found_delistings.keys())
+
+#             if not self.delisted_symbols:
+#                 self.detector.active_symbols = set()
+#                 self.active_alerts.clear()      # ← чистить, иначе зависнут старые
+#                 self.tracked_matches = set()
+#                 await asyncio.sleep(cfg.app.game_loop_interval_sec)
+#                 continue
+
+#             active_raw = await self.private_client.get_active_symbols()
+#             self.detector.active_symbols = {self.normalize_symbol(s) for s in active_raw}
+
+#             current_matches = self.detector.active_symbols & self.delisted_symbols
+#             new_signals = current_matches - self.tracked_matches
+
+#             alerts_to_send: Dict[int, List[str]] = defaultdict(list)
+#             for sym in current_matches:
+#                 if sym in new_signals:
+#                     self.active_alerts[sym] = {"repeat_num": 1, "last_sent": now}
+#                     alerts_to_send[1].append(sym)
+#                 else:
+#                     alert = self.active_alerts.get(sym)
+#                     if alert and alert["repeat_num"] < cfg.delisting_repeats:
+#                         if now - alert["last_sent"] >= cfg.delisting_interval_sec:
+#                             alert["repeat_num"] += 1
+#                             alert["last_sent"] = now
+#                             alerts_to_send[alert["repeat_num"]].append(sym)
+
+#             for repeat_num, syms in alerts_to_send.items():
+#                 await self._dispatch_alert(", ".join(syms), repeat_num, cfg)
+
+#             # Безопасное удаление — сначала собираем в set
+#             for sym in set(self.active_alerts.keys()) - current_matches:
+#                 del self.active_alerts[sym]
+
+#             self.tracked_matches = current_matches
+
+#         except Exception as e:
+#             logger.error("Ошибка гейм-лупы: %s", e)
+
+#         await asyncio.sleep(self.config_store.config.app.game_loop_interval_sec)
