@@ -128,14 +128,8 @@ class DelistingOrchestrator:
                     await asyncio.sleep(cfg.app.game_loop_interval_sec)
                     continue
                     
-                # ОПТИМИЗАЦИЯ 2: Если делистинги есть, но они старые (уже проверяли), И нет открытых позиций
-                if not new_delisted and not self.active_alerts:
-                    self._debug_debug("No NEW delistings and no active tracked positions. Skipping private requests.")
-                    await asyncio.sleep(cfg.app.game_loop_interval_sec)
-                    continue
-
-                # 4. Если дошли сюда, значит либо появилась новая монета на делистинг, 
-                # либо у нас висит открытая тревога, и надо следить, закрыл ли юзер позицию.
+                # 4. Если дошли сюда, регулярно проверяем открытые позиции,
+                # так как пользователь мог открыть позицию на уже объявленной к делистингу монете.
                 active_raw = await self.private_client.get_active_symbols()
                 self._debug_debug("Private API Active Positions returned %d symbols: %s", len(active_raw), active_raw)
                 self.detector.active_symbols = {self.normalize_symbol(s) for s in active_raw}

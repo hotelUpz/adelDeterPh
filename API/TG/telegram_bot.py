@@ -59,6 +59,7 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
 def get_notifications_keyboard(cfg: Any) -> InlineKeyboardMarkup:
     tg_status = "🟢 Вкл" if cfg.telegram_alerts.enabled else "🔴 Выкл"
     po_status = "🟢 Вкл" if cfg.notifier_android.enabled else "🔴 Выкл"
+    jn_status = "🟢 Вкл" if cfg.notifier_join.enabled else "🔴 Выкл"
     al_status = "🟢 Вкл" if cfg.notifier_apple2.enabled else "🔴 Выкл"
     te_status = "🟢 Вкл" if cfg.notifier_apple.enabled else "🔴 Выкл"
     
@@ -68,7 +69,10 @@ def get_notifications_keyboard(cfg: Any) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text=f"Pushover: {po_status}", callback_data="toggle_alerts:pushover_android")
         ],
         [
-            InlineKeyboardButton(text=f"Alertzy: {al_status}", callback_data="toggle_alerts:alertzy_ios"),
+            InlineKeyboardButton(text=f"Join: {jn_status}", callback_data="toggle_alerts:join_android"),
+            InlineKeyboardButton(text=f"Alertzy: {al_status}", callback_data="toggle_alerts:alertzy_ios")
+        ],
+        [
             InlineKeyboardButton(text=f"Techulus: {te_status}", callback_data="toggle_alerts:techulus_ios")
         ],
         [InlineKeyboardButton(text="🔙 Закрыть", callback_data="close_menu")]
@@ -78,6 +82,7 @@ def get_notifications_keyboard(cfg: Any) -> InlineKeyboardMarkup:
 def get_notifications_text(cfg: Any) -> str:
     tg_status = "🟢 Вкл" if cfg.telegram_alerts.enabled else "🔴 Выкл"
     po_status = "🟢 Вкл" if cfg.notifier_android.enabled else "🔴 Выкл"
+    jn_status = "🟢 Вкл" if cfg.notifier_join.enabled else "🔴 Выкл"
     al_status = "🟢 Вкл" if cfg.notifier_apple2.enabled else "🔴 Выкл"
     te_status = "🟢 Вкл" if cfg.notifier_apple.enabled else "🔴 Выкл"
     
@@ -85,6 +90,7 @@ def get_notifications_text(cfg: Any) -> str:
         "🔔 <b>Управление уведомлениями и пушами</b>\n\n"
         f"• Telegram-алерты: {tg_status}\n"
         f"• Pushover (Android): {po_status}\n"
+        f"• Join (Android): {jn_status}\n"
         f"• Alertzy (iOS): {al_status}\n"
         f"• Techulus (iOS): {te_status}\n\n"
         "Нажмите на соответствующую кнопку ниже для переключения статуса канала:"
@@ -156,6 +162,8 @@ async def toggle_alerts_callback(call: types.CallbackQuery, ctx: Any):
         current_val = cfg.telegram_alerts.enabled
     elif channel == "pushover_android":
         current_val = cfg.notifier_android.enabled
+    elif channel == "join_android":
+        current_val = cfg.notifier_join.enabled
     elif channel == "alertzy_ios":
         current_val = cfg.notifier_apple2.enabled
     elif channel == "techulus_ios":
@@ -167,6 +175,7 @@ async def toggle_alerts_callback(call: types.CallbackQuery, ctx: Any):
     # Синхронизируем состояние включения в менеджере нотификаций
     tg_enabled = ctx.config_store.config.telegram_alerts.enabled
     pushover_enabled = ctx.config_store.config.notifier_android.enabled
+    join_enabled = ctx.config_store.config.notifier_join.enabled
     techulus_enabled = ctx.config_store.config.notifier_apple.enabled
     alertzy_enabled = ctx.config_store.config.notifier_apple2.enabled
     
@@ -174,6 +183,8 @@ async def toggle_alerts_callback(call: types.CallbackQuery, ctx: Any):
     ctx.notifier_manager.notifiers[1]._enabled = pushover_enabled and bool(ctx.notifier_manager.notifiers[1].token)
     ctx.notifier_manager.notifiers[2]._enabled = techulus_enabled and bool(ctx.notifier_manager.notifiers[2].api_key)
     ctx.notifier_manager.notifiers[3]._enabled = alertzy_enabled and bool(ctx.notifier_manager.notifiers[3].account_key)
+    if len(ctx.notifier_manager.notifiers) > 4:
+        ctx.notifier_manager.notifiers[4]._enabled = join_enabled and bool(ctx.notifier_manager.notifiers[4].api_key)
     
     cfg = ctx.config_store.config
     text = get_notifications_text(cfg)

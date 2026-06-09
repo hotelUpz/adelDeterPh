@@ -53,6 +53,7 @@ class FullConfig:
         self.notifier_android = AlertChannelConfig(alerts_data["pushover_android"])
         self.notifier_apple = AlertChannelConfig(alerts_data["techulus_ios"])
         self.notifier_apple2 = AlertChannelConfig(alerts_data["alertzy_ios"])
+        self.notifier_join = AlertChannelConfig(alerts_data.get("join_android", {"enabled": False}))
         
         # Секция Telegram бота
         from dataclasses import dataclass

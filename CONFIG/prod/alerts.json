@@ -8,6 +8,9 @@
     "pushover_android": {
         "enabled": false
     },
+    "join_android": {
+        "enabled": true
+    },
     "telegram_alerts": {
         "enabled": true
     },

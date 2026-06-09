@@ -29,6 +29,7 @@ from API.TG.notifier import TelegramNotifier, NotificationManager
 from API.pushover.pushover import PushoverNotifier
 from API.pushover.techulus import TechulusPushNotifier
 from API.pushover.alertzy import AlertzyNotifier
+from API.pushover.join import JoinNotifier
 
 logger = UnifiedLogger("main")
 
@@ -66,12 +67,14 @@ async def main():
         pushover_notifier = PushoverNotifier(session, os.getenv("ANDROID_PUSHOVER_TOKEN", ""), os.getenv("ANDROID_PUSHOVER_USER", ""), enabled=cfg.notifier_android.enabled)
         techulus_notifier = TechulusPushNotifier(session, os.getenv("APPLE_NOTIFIER_KEY", ""), enabled=cfg.notifier_apple.enabled)
         alertzy_notifier = AlertzyNotifier(session, os.getenv("APPLE2_ALERTZY_KEY", ""), enabled=cfg.notifier_apple2.enabled)
+        join_notifier = JoinNotifier(session, os.getenv("ANDROID_JOIN_KEY", ""), enabled=cfg.notifier_join.enabled)
 
         notifier_manager = NotificationManager([
             tg_notifier,         # [0] Telegram
             pushover_notifier,   # [1] Pushover Android
             techulus_notifier,   # [2] Techulus iOS
-            alertzy_notifier     # [3] Alertzy iOS
+            alertzy_notifier,    # [3] Alertzy iOS
+            join_notifier        # [4] Join Android
         ])
 
         # 5. Инъекция собранных зависимостей в ядро оркестратора
