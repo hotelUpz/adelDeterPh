@@ -8,10 +8,6 @@
     "pushover_android": {
         "enabled": false
     },
-    "notifier_join_android": {
-        "enabled": true,
-        "device_id": "group.all"
-    },
     "telegram_alerts": {
         "enabled": true
     },

@@ -65,7 +65,7 @@ def get_notifications_keyboard(cfg: Any) -> InlineKeyboardMarkup:
     keyboard = [
         [
             InlineKeyboardButton(text=f"Telegram: {tg_status}", callback_data="toggle_alerts:telegram_alerts"),
-            InlineKeyboardButton(text=f"Join: {po_status}", callback_data="toggle_alerts:pushover_android")
+            InlineKeyboardButton(text=f"Pushover: {po_status}", callback_data="toggle_alerts:pushover_android")
         ],
         [
             InlineKeyboardButton(text=f"Alertzy: {al_status}", callback_data="toggle_alerts:alertzy_ios"),
@@ -84,7 +84,7 @@ def get_notifications_text(cfg: Any) -> str:
     return (
         "🔔 <b>Управление уведомлениями и пушами</b>\n\n"
         f"• Telegram-алерты: {tg_status}\n"
-        f"• Join (Android): {po_status}\n"
+        f"• Pushover (Android): {po_status}\n"
         f"• Alertzy (iOS): {al_status}\n"
         f"• Techulus (iOS): {te_status}\n\n"
         "Нажмите на соответствующую кнопку ниже для переключения статуса канала:"
@@ -171,11 +171,7 @@ async def toggle_alerts_callback(call: types.CallbackQuery, ctx: Any):
     alertzy_enabled = ctx.config_store.config.notifier_apple2.enabled
     
     ctx.notifier_manager.notifiers[0]._enabled = tg_enabled and bool(ctx.bot) and bool(ctx.config_store.config.telegram.allowed_user_ids)
-    android_notif = ctx.notifier_manager.notifiers[1]
-    if hasattr(android_notif, "api_key"):
-        android_notif.enabled = pushover_enabled and bool(android_notif.api_key)
-    else:
-        android_notif._enabled = pushover_enabled and bool(getattr(android_notif, "token", ""))
+    ctx.notifier_manager.notifiers[1]._enabled = pushover_enabled and bool(ctx.notifier_manager.notifiers[1].token)
     ctx.notifier_manager.notifiers[2]._enabled = techulus_enabled and bool(ctx.notifier_manager.notifiers[2].api_key)
     ctx.notifier_manager.notifiers[3]._enabled = alertzy_enabled and bool(ctx.notifier_manager.notifiers[3].account_key)
     

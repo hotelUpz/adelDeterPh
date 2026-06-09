@@ -26,7 +26,7 @@ from API.GMAIL.gmail_monitor import GmailMonitor
 
 # Импорт модулей нотификации
 from API.TG.notifier import TelegramNotifier, NotificationManager
-from API.pushover.join import JoinNotifier
+from API.pushover.pushover import PushoverNotifier
 from API.pushover.techulus import TechulusPushNotifier
 from API.pushover.alertzy import AlertzyNotifier
 
@@ -63,13 +63,13 @@ async def main():
 
         # 4. Сборка массива нотификаторов строго по индексам из telegram_bot.py
         tg_notifier = TelegramNotifier(bot, cfg.telegram.allowed_user_ids, enabled=cfg.telegram_alerts.enabled)
-        join_notifier = JoinNotifier(session, os.getenv("ANDROID_JOIN_KEY", ""), enabled=cfg.notifier_android.enabled)
+        pushover_notifier = PushoverNotifier(session, os.getenv("ANDROID_PUSHOVER_TOKEN", ""), os.getenv("ANDROID_PUSHOVER_USER", ""), enabled=cfg.notifier_android.enabled)
         techulus_notifier = TechulusPushNotifier(session, os.getenv("APPLE_NOTIFIER_KEY", ""), enabled=cfg.notifier_apple.enabled)
         alertzy_notifier = AlertzyNotifier(session, os.getenv("APPLE2_ALERTZY_KEY", ""), enabled=cfg.notifier_apple2.enabled)
 
         notifier_manager = NotificationManager([
             tg_notifier,         # [0] Telegram
-            join_notifier,       # [1] Android Join
+            pushover_notifier,   # [1] Pushover Android
             techulus_notifier,   # [2] Techulus iOS
             alertzy_notifier     # [3] Alertzy iOS
         ])
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 # # git push --set-upstream origin master
 # # git config --global push.autoSetupRemote true
 # # ssh -T git@github.com 
-# # git log -1 
+# # git log -1
 
 # # git add .
 # # git commit -m "plh37"
